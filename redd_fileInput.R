@@ -10,7 +10,7 @@ require(PerformanceAnalytics)
 require(RColorBrewer)
 
 #file input
-#
+
 roc=read.csv("assets.csv",header=TRUE)
 roc=as.xts(roc[,-1],order.by=as.POSIXct(roc[,1], format="%Y-%m-%d"))
 
@@ -63,7 +63,6 @@ asset.sharpe <- na.omit( runMax(lag(rollapplyr(returns[,1], width = 36, FUN = Sh
 #if you would like to use a constant Sharpe, specify here and uncomment
 #the paper uses a little hindsight to use the historic 0.403 Sharpe
 #asset.sharpe <- 0.403
-
 
 #feel free to experiment here
 
