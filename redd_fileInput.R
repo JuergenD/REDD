@@ -12,10 +12,11 @@ require(RColorBrewer)
 #file input
 #
 roc=read.csv("assets.csv",header=TRUE)
-roc=as.xts(roc[,-1],order.by=as.Date(roc[,1], format="%Y-%m-%d"))
+roc=as.xts(roc[,-1],order.by=as.POSIXct(roc[,1], format="%Y-%m-%d"))
 
 assetcolumn=14
 asset=colnames(roc)[assetcolumn]
+
 # from="1990-01-01"
 # #get asset
 # getSymbols(asset,src="yahoo" ,from = from)
@@ -24,13 +25,18 @@ asset=colnames(roc)[assetcolumn]
 # roc <- ROC(asset.monthly, n = 1, type = "discrete")
 
 #get 1 year t-bill for risk-free
+
 getSymbols("GS1", src = "FRED")
 idx=seq(as.Date("1953/05/01"), by="month", along.with=GS1)-1
 index(GS1)<-idx
+
 #combine the monthly asset return with a monthly return of GS1 1 year treasury
-returns <- na.omit( merge(roc[,assetcolumn], ((1+lag(GS1,1) / 100) ^ (1/12)) - 1) )
+
+returns <- na.omit(merge(roc[,assetcolumn], ((1+lag(GS1,1) / 100) ^ (1/12)) - 1))
 cumreturns <- cumprod(1+returns)
+
 #calculate REDD assuming 1st column is risky asset and 2nd is risk-free
+
 REDD <- function(x, rf) {
   rf <- rf[index(x)]
   result <- 1 - last(x) / 
@@ -60,15 +66,19 @@ asset.sharpe <- na.omit( runMax(lag(rollapplyr(returns[,1], width = 36, FUN = Sh
 
 
 #feel free to experiment here
-#
+
 drawdown.limit <- .3
-position.size <- as.xts(apply(( (asset.sharpe/drawdown.limit + 0.5) / (1-drawdown.limit^2) ) *
-                                #( (drawdown.limit  - asset.redd) / (1 - asset.redd) ), MARGIN = 1, FUN = max, 0), order.by = index(asset.redd))
-                                ( (drawdown.limit  - asset.redd) / (1 - asset.redd) ), MARGIN = 1, FUN = max, 0), order.by = index(asset.sharpe))
+position.size <- as.xts(apply(( (asset.sharpe/drawdown.limit + 0.5) / (1-drawdown.limit^2) ) *                            
+                                ((drawdown.limit  - asset.redd) / (1 - asset.redd)), MARGIN = 1, FUN = max, 0), order.by = index(asset.sharpe))
 
 avSize=sum(position.size)/NROW(position.size)
 
 plot(position.size,main=paste("average Pos.Size: ",sprintf("%1.2f%%", 100*avSize),sep=""))
+
+cagr <- function(x) {
+  x=cumprod(na.omit((x+1)))
+  na.omit((coredata(x[nrow(x)])/coredata(x[1]))^(1/((as.numeric(index(x[nrow(x)])-index(x[1])))/365.25))-1)
+}
 
 #charts.PerformanceSummary(merge(lag(position.size)*roc, roc))
 return.comps <- merge(lag(position.size)*returns[,1] + lag(1-position.size) * returns[,2], returns[,1], returns[,2])
