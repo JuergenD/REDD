@@ -40,7 +40,7 @@ cumreturns <- cumprod(1+returns)
 REDD <- function(x, rf) {
   rf <- rf[index(x)]
   result <- 1 - last(x) / 
-    ( coredata(max(x)) * coredata(last(rf)) / coredata(first(rf[index(x[which(x==max(x))])])) ) 
+    (coredata(max(x)) * coredata(last(rf)) / coredata(first(rf[index(x[which(x==max(x))])]))) 
   return(result)
 }
 
@@ -53,8 +53,7 @@ REDD <- function(x, rf) {
 asset.redd <- rollapplyr(cumreturns[,1], width = 12, FUN = REDD, rf=cumreturns[,2])
 
 #experiment with a couple different Sharpe options
-asset.sharpe <- na.omit( runMax(lag(rollapplyr(returns[,1], width = 36, FUN = SharpeRatio, Rf = 0, p = 0.95, "StdDev"),12),
-                                n = 12) )
+asset.sharpe <- na.omit( runMax(lag(rollapplyr(returns[,1], width = 36, FUN = SharpeRatio, Rf = 0, p = 0.95, "StdDev"),12), n = 12) )
 
 #another sharpe alternative
 #asset.sharpe <-  1 -  na.omit( runMin(lag(rollapplyr(returns[,1], width = 36, FUN = SharpeRatio, Rf = 0, p = 0.95, "StdDev"),12), n = 12) )
@@ -67,7 +66,7 @@ asset.sharpe <- na.omit( runMax(lag(rollapplyr(returns[,1], width = 36, FUN = Sh
 #feel free to experiment here
 
 drawdown.limit <- .3
-position.size <- as.xts(apply(( (asset.sharpe/drawdown.limit + 0.5) / (1-drawdown.limit^2) ) *                            
+position.size <- as.xts(apply(( (asset.sharpe/drawdown.limit + 0.5) / (1-drawdown.limit^2) ) * 
                                 ((drawdown.limit  - asset.redd) / (1 - asset.redd)), MARGIN = 1, FUN = max, 0), order.by = index(asset.sharpe))
 
 avSize=sum(position.size)/NROW(position.size)
