@@ -11,11 +11,11 @@ require(RColorBrewer)
 
 #file input
 
-roc=read.csv("assets.csv", header=TRUE)
-roc=as.xts(roc[, -1], order.by = as.POSIXct(roc[, 1], format = "%Y-%m-%d"))
+roc = read.csv("assets.csv", header = TRUE)
+roc = as.xts(roc[, -1], order.by = as.POSIXct(roc[, 1], format = "%Y-%m-%d"))
 
-assetcolumn=14
-asset=colnames(roc)[assetcolumn]
+assetcolumn = 14
+asset = colnames(roc)[assetcolumn]
 
 # from="1990-01-01"
 # #get asset
@@ -27,7 +27,7 @@ asset=colnames(roc)[assetcolumn]
 #get 1 year t-bill for risk-free
 
 getSymbols("GS1", src = "FRED")
-idx=seq(as.Date("1953/05/01"), by="month", along.with=GS1) - 1
+idx=seq(as.Date("1953/05/01"), by = "month", along.with = GS1) - 1
 index(GS1) <- idx
 
 #combine the monthly asset return with a monthly return of GS1 1 year treasury
@@ -64,7 +64,7 @@ asset.sharpe <- na.omit(runMax(lag(rollapplyr(returns[, 1], width = 36, FUN = Sh
 
 #feel free to experiment here
 
-drawdown.limit <- .3
+drawdown.limit <- 0.3
 position.size <- as.xts(apply(((asset.sharpe / drawdown.limit + 0.5) / (1 - drawdown.limit ^ 2)) * 
   ((drawdown.limit - asset.redd) / (1 - asset.redd)), MARGIN = 1, FUN = max, 0), order.by = index(asset.sharpe))
 
@@ -81,8 +81,8 @@ cagr <- function(x) {
 return.comps <- merge(lag(position.size) * returns[, 1] + lag(1 - position.size) * returns[, 2], returns[, 1], returns[, 2])
 colnames(return.comps) <- c("REDD-COPS", asset, "US1Y")
 CAGR = sprintf("%1.2f%%", cagr(return.comps) * 100)
-charts.PerformanceSummary(return.comps, ylog=TRUE,
+charts.PerformanceSummary(return.comps, ylog = TRUE,
   colorset = brewer.pal(10, "Spectral")[c(2, 4, 7)], 
-  main = "REDD-COPS System Test (http://ssrn.com/abstract=2053854)", sub=CAGR)
+  main = "REDD-COPS System Test (http://ssrn.com/abstract=2053854)", sub = CAGR)
 
 CAGR
